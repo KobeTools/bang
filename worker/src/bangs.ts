@@ -1,7 +1,18 @@
-// Auto-generated top bangs for fast initial load
-import { BangItem } from "./types/BangItem";
+/**
+ * Auto-generated bang data for the Cloudflare Worker
+ * Generated from src/bangs-top.ts
+ * 
+ * DO NOT EDIT MANUALLY - run `node scripts/generate-worker-bangs.js`
+ */
 
-export const topBangs: BangItem[] = [
+export interface Bang {
+  t: string | string[];  // trigger(s)
+  s: string;             // service name
+  u: string;             // URL template with %s
+  r: number;             // relevance
+}
+
+export const bangs: Bang[] = [
   {
     "t": [
       "?",
@@ -11175,3 +11186,15 @@ export const topBangs: BangItem[] = [
     "u": "https://dic.daum.net/search.do?q=%s"
   }
 ];
+
+// Build trigger map for O(1) lookups
+export const triggerMap = new Map<string, Bang>();
+
+for (const bang of bangs) {
+  const triggers = Array.isArray(bang.t) ? bang.t : [bang.t];
+  for (const trigger of triggers) {
+    triggerMap.set(trigger.toLowerCase(), bang);
+  }
+}
+
+console.log(`Loaded ${bangs.length} bangs with ${triggerMap.size} triggers`);

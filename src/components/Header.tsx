@@ -15,7 +15,7 @@ export function Header() {
       <div className="space-y-4">
         {/* Tagline */}
         <p className="text-muted-foreground text-base sm:text-lg font-light tracking-wide">
-          Search with <span className="text-primary font-mono font-medium">!bangs</span> — instantly
+          Search with <span className="text-primary font-mono font-medium">!bangs</span> instantly
         </p>
         
         {/* Action buttons */}

@@ -130,10 +130,12 @@ const manualTopTriggers = new Set([
 ]);
 
 // Filter top bangs: high relevance OR in manual list
+// Relevance threshold of 20 gives us ~2000 bangs which fits in Cloudflare Worker's 1MB limit
+const RELEVANCE_THRESHOLD = 20;
 const topBangs = bangs.filter(b => {
     const triggers = Array.isArray(b.t) ? b.t : [b.t];
     const hasTopTrigger = triggers.some(t => manualTopTriggers.has(t.toLowerCase()));
-    return hasTopTrigger || b.r >= 50;
+    return hasTopTrigger || b.r >= RELEVANCE_THRESHOLD;
 });
 
 // Also sort top bangs alphabetically

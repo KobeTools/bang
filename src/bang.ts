@@ -7,7 +7,7 @@ export { topBangs };
 
 // Content-hashed filename for cache busting
 // This changes whenever the bang list is updated
-export const BANGS_FILENAME = '/bangs.2f8c641b.json';
+export const BANGS_FILENAME = '/bangs.880f79b5.json';
 
 /**
  * Compact format structure from bangs.json:

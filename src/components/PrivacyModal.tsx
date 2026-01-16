@@ -40,7 +40,7 @@ export function PrivacyModal({ open, onOpenChange }: PrivacyModalProps) {
           <PrivacyPoint
             icon={ArrowRight}
             title="Client-Side Redirects"
-            description="All redirects happen entirely in your browser. Your search query goes directly from your browser to the destination site—it never passes through any ReBang server."
+            description="All redirects happen entirely in your browser. Your search query goes directly from your browser to the destination site it never passes through any ReBang server."
             variant="good"
           />
 
