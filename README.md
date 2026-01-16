@@ -18,7 +18,7 @@ The fastest web-based bang redirector. Set `https://rebang.online/?q=%s` as your
 | **Custom bangs** | No | No | Yes |
 | **Autocomplete** | Yes | No | Yes |
 
-[unduck](https://github.com/t3dotgg/unduck) by Theo pioneered client-side bang redirects. ReBang takes it further by handling redirects at Cloudflare's edge network—the 302 redirect returns before any HTML or JavaScript loads.
+[unduck](https://github.com/t3dotgg/unduck) by Theo pioneered client-side bang redirects. ReBang takes it further by handling redirects at Cloudflare's edge network: the 302 redirect returns before any HTML or JavaScript loads.
 
 ## How It's Fast
 
@@ -40,14 +40,14 @@ ReBang merges bangs from DuckDuckGo and Kagi, deduplicating by URL:
 | Combined (raw) | 24,461 |
 | **After deduplication** | **13,296** |
 
-DDG stores each trigger as a separate entry (`!g`, `!google`, `!goog` = 3 entries). ReBang merges these into one bang with multiple triggers. Triggers aren't lost—they're consolidated.
+DDG stores each trigger as a separate entry (`!g`, `!google`, `!goog` = 3 entries). ReBang merges these into one bang with multiple triggers. Triggers aren't lost, they're consolidated.
 
 ## Features
 
-- **Custom bangs** — Create personal shortcuts stored in localStorage
-- **Autocomplete** — Type `!` to search the full database
-- **Configurable default** — Set your preferred search engine for queries without a bang
-- **Monthly updates** — GitHub Actions fetches fresh bangs from DDG and Kagi
+- **Custom bangs**: Create personal shortcuts stored in localStorage
+- **Autocomplete**: Type `!` to search the full database
+- **Configurable default**: Set your preferred search engine for queries without a bang
+- **Monthly updates**: GitHub Actions fetches fresh bangs from DDG and Kagi
 
 ## Setup
 
@@ -61,25 +61,7 @@ Add as your default search engine:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────┐
-│   Cloudflare Edge (300+ locations)  │
-│   • 1,297 bangs embedded            │
-│   • O(1) hashmap lookup             │
-└──────────────────┬──────────────────┘
-                   │
-      ┌────────────┴────────────┐
-      │                         │
-      ▼                         ▼
-  Known bang               Unknown/custom bang
-      │                    or no bang
-      ▼                         │
- 302 Redirect                   ▼
-                          Origin (Vercel)
-                          React app handles
-                          full database +
-                          user settings
-```
+![ReBang Architecture](public/architecture.png)
 
 ### Edge Worker
 
@@ -135,9 +117,9 @@ bun run deploy       # Deploy to Cloudflare
 
 ## Credits
 
-- [unduck](https://github.com/t3dotgg/unduck) by Theo — Original client-side bang redirect
-- [Kagi Bangs](https://github.com/kagisearch/bangs) — Open-source bang database
-- [DuckDuckGo](https://duckduckgo.com/bangs) — The original bang search
+- [unduck](https://github.com/t3dotgg/unduck) by Theo: Original client-side bang redirect
+- [Kagi Bangs](https://github.com/kagisearch/bangs): Open-source bang database
+- [DuckDuckGo](https://duckduckgo.com/bangs): The original bang search
 
 ## License
 

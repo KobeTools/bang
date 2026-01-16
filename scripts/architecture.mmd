@@ -1,0 +1,43 @@
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1e3a5f', 'primaryTextColor': '#fff', 'primaryBorderColor': '#3b82f6', 'lineColor': '#64748b', 'secondaryColor': '#1e293b', 'tertiaryColor': '#0f172a', 'background': '#0a0a0a', 'mainBkg': '#0a0a0a', 'nodeBorder': '#3b82f6', 'clusterBkg': '#1e293b', 'titleColor': '#fff', 'edgeLabelBackground': '#1e293b'}}}%%
+flowchart TB
+    subgraph User["User Request"]
+        A["🔍 rebang.online/?q=cats !yt"]
+    end
+    
+    subgraph Edge["Cloudflare Edge (300+ PoPs)"]
+        B{"Has !bang?"}
+        C["Lookup in 1,297 top bangs<br/>O(1) hashmap"]
+        D{"Bang found?"}
+    end
+    
+    subgraph Fast["⚡ Fast Path (~60ms)"]
+        E["302 Redirect"]
+        F["📺 youtube.com/results?search_query=cats"]
+    end
+    
+    subgraph Origin["Origin (Vercel)"]
+        G["React App"]
+        H["Full 13,296 bangs<br/>+ Custom bangs<br/>+ User settings"]
+        I["Client-side redirect"]
+    end
+    
+    A --> B
+    B -->|"Yes"| C
+    B -->|"No (use default)"| G
+    C --> D
+    D -->|"Yes"| E
+    D -->|"No (rare/custom)"| G
+    E --> F
+    G --> H
+    H --> I
+    I --> F
+    
+    style A fill:#1e3a5f,stroke:#3b82f6,color:#fff
+    style B fill:#1e293b,stroke:#3b82f6,color:#fff
+    style C fill:#1e293b,stroke:#3b82f6,color:#fff
+    style D fill:#1e293b,stroke:#3b82f6,color:#fff
+    style E fill:#065f46,stroke:#10b981,color:#fff
+    style F fill:#065f46,stroke:#10b981,color:#fff
+    style G fill:#1e293b,stroke:#64748b,color:#fff
+    style H fill:#1e293b,stroke:#64748b,color:#fff
+    style I fill:#1e293b,stroke:#64748b,color:#fff
