@@ -29,3 +29,4 @@ __pycache__/*
 removed_bangs_report.md
 src/bang_auto.ts
 *.bak
+.agent/
