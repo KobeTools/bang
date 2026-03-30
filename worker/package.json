@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "generate-bangs": "node ../scripts/generate-worker-bangs.js"
