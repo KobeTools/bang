@@ -2,7 +2,7 @@
  * ReBang Edge Redirect Worker
  * 
  * Intercepts requests with ?q= parameter and performs instant redirects
- * at the edge. Non-redirect requests are passed through to the origin (Vercel).
+ * at the edge. Non-redirect requests are passed through to the frontend origin.
  * 
  * Custom bangs (stored in user's localStorage) are NOT handled here - they
  * fall through to the origin where the React app handles them.
@@ -14,19 +14,17 @@ interface Env {
   ORIGIN_URL: string;
 }
 
-const ORIGIN = 'https://www.rebang.online';
+const DEFAULT_ORIGIN_URL = 'https://bang-web.pages.dev';
 
 /**
- * Pass request through to Vercel origin
+ * Pass request through to the configured frontend origin.
  */
-function passToOrigin(request: Request): Promise<Response> {
+function passToOrigin(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
-  const originUrl = new URL(url.pathname + url.search, ORIGIN);
-  
-  return fetch(originUrl.toString(), {
-    method: request.method,
-    headers: request.headers,
-  });
+  const origin = env.ORIGIN_URL || DEFAULT_ORIGIN_URL;
+  const originUrl = new URL(url.pathname + url.search, origin);
+
+  return fetch(new Request(originUrl.toString(), request));
 }
 
 export default {
@@ -36,7 +34,7 @@ export default {
 
     // No query parameter - pass through to origin for the React app
     if (!query) {
-      return passToOrigin(request);
+      return passToOrigin(request, env);
     }
 
     // Extract bang from query (e.g., "cats !yt" -> "yt")
@@ -44,7 +42,7 @@ export default {
     
     // No bang in query - pass to origin so client can use user's configured default
     if (!bangMatch) {
-      return passToOrigin(request);
+      return passToOrigin(request, env);
     }
     
     const bangTrigger = bangMatch[1].toLowerCase();
@@ -55,7 +53,7 @@ export default {
     if (!bang) {
       // Bang not found in top bangs - fall back to origin
       // This handles: uncommon bangs, custom user bangs, typos
-      return passToOrigin(request);
+      return passToOrigin(request, env);
     }
 
     // Remove bang from query to get clean search term

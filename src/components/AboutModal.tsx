@@ -102,7 +102,7 @@ export function AboutModal({ open, onOpenChange }: AboutModalProps) {
           {/* Links */}
           <section className="flex items-center justify-center gap-4 pt-2">
             <a
-              href="https://github.com/Void-n-Null/rebang"
+              href="https://github.com/KOBeerose/bang"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"

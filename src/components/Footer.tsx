@@ -11,7 +11,7 @@ export function Footer() {
         <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-4">
             <a 
-              href="https://github.com/Void-n-Null/rebang" 
+              href="https://github.com/KOBeerose/bang" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="flex items-center gap-1.5 hover:text-foreground transition-colors"

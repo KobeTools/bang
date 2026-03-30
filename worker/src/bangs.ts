@@ -8,6 +8,7 @@
 export interface Bang {
   t: string | string[];  // trigger(s)
   s: string;             // service name
+  c?: string;            // category
   u: string;             // URL template with %s
   r: number;             // relevance
 }

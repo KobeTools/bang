@@ -1,13 +1,9 @@
-name = "rebang-redirect"
+name = "bang"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
-# Routes - Worker handles requests to rebang.online
-routes = [
-  { pattern = "rebang.online/*", zone_name = "rebang.online" },
-  { pattern = "www.rebang.online/*", zone_name = "rebang.online" }
-]
+# Deploy this worker directly on workers.dev or bind a custom route later.
 
 [vars]
-# Vercel origin for non-redirect requests
-ORIGIN_URL = "https://rebang.online"
+# Frontend origin for requests that should fall through to the UI.
+ORIGIN_URL = "https://bang-web.pages.dev"
