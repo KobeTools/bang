@@ -4,6 +4,6 @@
   <Description>A better default search engine (with bangs!)</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Image width="16" height="16" type="image/x-icon">/ReBangLogoBG.ico</Image>
-  <Url type="text/html" template="https://rebang.online/?q={searchTerms}"/>
-  <moz:SearchForm>https://rebang.online</moz:SearchForm>
+  <Url type="text/html" template="https://bang.kobeerose.workers.dev/?q={searchTerms}"/>
+  <moz:SearchForm>https://bang.kobeerose.workers.dev</moz:SearchForm>
 </OpenSearchDescription> 

@@ -94,7 +94,7 @@ export function AboutModal({ open, onOpenChange }: AboutModalProps) {
           <section className="p-3 rounded-xl bg-primary/5 border border-primary/20">
             <h4 className="text-sm font-medium text-foreground mb-1">Quick Setup</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Add <code className="text-primary bg-primary/10 px-1 rounded text-[11px]">rebang.online/?q=%s</code> as 
+              Add <code className="text-primary bg-primary/10 px-1 rounded text-[11px]">bang.kobeerose.workers.dev/?q=%s</code> as 
               a custom search engine in your browser and set it as default.
             </p>
           </section>

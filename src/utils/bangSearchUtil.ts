@@ -13,10 +13,10 @@ export const RESERVED_TRIGGERS = ['home', 'rebang', 'settings', 'bang', 'bangs']
 
 /**
  * Creates the special "home" bang that points to the current origin
- * This is dynamically generated so it works on localhost, rebang.online, etc.
+ * This is dynamically generated so it works on localhost, workers.dev, etc.
  */
 export function getHomeBang(): BangItem {
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://rebang.online';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://bang.kobeerose.workers.dev';
   return {
     t: RESERVED_TRIGGERS,
     s: 'ReBang Settings',

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Benchmark: ReBang vs Unduck
+ * Benchmark: Bang vs ReBang vs Unduck
  * Tests redirect latency for various bangs
  */
 
@@ -11,6 +11,7 @@ import http from 'http';
 const ITERATIONS = 50;
 
 const SERVICES = [
+  { name: 'Bang', url: 'https://bang.kobeerose.workers.dev/' },
   { name: 'ReBang', url: 'https://rebang.online/' },
   { name: 'Unduck', url: 'https://unduck.link/' },
 ];
@@ -67,7 +68,7 @@ async function benchmark(baseUrl, query, iterations) {
 
 async function main() {
   console.log('==============================================');
-  console.log('  ReBang vs Unduck vs Unduckified Benchmark');
+  console.log('  Bang vs ReBang vs Unduck Benchmark');
   console.log('==============================================');
   console.log('');
   console.log(`Iterations per query: ${ITERATIONS}`);
@@ -152,10 +153,17 @@ async function main() {
   
   // Speedup summary
   console.log('');
-  console.log('Speedup vs ReBang:');
-  for (const s of SERVICES.slice(1)) {
+  console.log('Relative to ReBang:');
+  for (const s of SERVICES) {
+    if (s.name === 'ReBang') {
+      console.log('  ReBang: 1.00x baseline');
+      continue;
+    }
+
     const speedup = (totals[s.name] / results.length) / avgRebang;
-    console.log(`  ${s.name}: ${speedup.toFixed(2)}x slower`);
+    const relation = speedup >= 1 ? 'slower' : 'faster';
+    const magnitude = speedup >= 1 ? speedup : 1 / speedup;
+    console.log(`  ${s.name}: ${magnitude.toFixed(2)}x ${relation}`);
   }
 }
 
