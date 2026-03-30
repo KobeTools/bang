@@ -2,8 +2,9 @@ import { loadSettings } from "./settings";
 
 import { BangItem } from "../types/BangItem";
 import { getParametersFromUrl, validateRedirectUrl, getBaseDomain } from "./urlUtils"; 
-import { determineBangCandidate, determineBangUsed, getBangFirstTrigger, ensureFullDatabase } from "./bangCoreUtil";
+import { determineBangCandidate, determineBangUsed, getBangFirstTrigger, ensureFullDatabase, hasFullDatabaseLoaded } from "./bangCoreUtil";
 import { findDefaultBangFromSettings } from "./bangSettingsUtil";
+import { debugError, debugLog, debugWarn } from "./debug";
 
 /**
  * Result object for bang redirect operations
@@ -25,8 +26,20 @@ async function getRedirect(urlParams: URLSearchParams): Promise<BangRedirectResu
     const query = urlParams.get("q") || "";
     if (!query) return { success: false, error: "No query parameter found" };
 
+    const settings = loadSettings();
+
     //Easily the fastest call here. Just a single lookup.
     const defaultBang = findDefaultBangFromSettings();
+    const defaultBangTrigger = getBangFirstTrigger(defaultBang);
+
+    debugLog("redirect:start", {
+      origin: typeof window !== "undefined" ? window.location.origin : null,
+      href: typeof window !== "undefined" ? window.location.href : null,
+      query,
+      defaultBang: defaultBangTrigger,
+      customBangsCount: settings.customBangs.length,
+      fullDatabaseLoaded: hasFullDatabaseLoaded(),
+    });
 
     //This function is fast. It's just a regex to extract the bang trigger.
     const bangCandidate: string = determineBangCandidate(query, defaultBang);
@@ -39,13 +52,29 @@ async function getRedirect(urlParams: URLSearchParams): Promise<BangRedirectResu
     const selectedTriggers = Array.isArray(selectedBang.t) ? selectedBang.t : [selectedBang.t];
     const foundRequestedBang = selectedTriggers.some(t => t.toLowerCase() === bangCandidate.toLowerCase());
 
+    debugLog("redirect:bang-selected", {
+      bangCandidate,
+      selectedBang: getBangFirstTrigger(selectedBang),
+      foundRequestedBang,
+      usedDefaultBang: !foundRequestedBang && bangCandidate === defaultBangTrigger,
+    });
+
     // If we didn't find the specific bang the user asked for, load the full database
     if (!foundRequestedBang) {
-        console.log(`Bang '!${bangCandidate}' not found in top list. Loading full database...`);
+        debugWarn("redirect:loading-full-database", {
+          bangCandidate,
+          selectedBang: getBangFirstTrigger(selectedBang),
+        });
         await ensureFullDatabase();
         
         // Retry with full database
         selectedBang = determineBangUsed(bangCandidate, defaultBang);
+
+        debugLog("redirect:full-database-loaded", {
+          bangCandidate,
+          selectedBang: getBangFirstTrigger(selectedBang),
+          fullDatabaseLoaded: hasFullDatabaseLoaded(),
+        });
     }
 
     const bangName = getBangFirstTrigger(selectedBang);
@@ -58,6 +87,10 @@ async function getRedirect(urlParams: URLSearchParams): Promise<BangRedirectResu
     //There wasnt even a way to set it in the settings page.
     if (cleanQuery === "") {
       const baseDomain = getBaseDomain(selectedBang.u);
+        debugLog("redirect:empty-search-term", {
+          bangUsed: bangName,
+          targetUrl: baseDomain ?? "https://www.google.com",
+        });
         return { 
           success: true, 
           url: baseDomain ?? "https://www.google.com",
@@ -74,12 +107,25 @@ async function getRedirect(urlParams: URLSearchParams): Promise<BangRedirectResu
     
     // Validate the URL is safe to redirect to
     if (!searchUrl || !validateRedirectUrl(searchUrl)) {
+      debugWarn("redirect:invalid-url", {
+        bangUsed: bangName,
+        bangCandidate,
+        cleanQuery,
+        searchUrl,
+      });
       return { 
         success: false, 
         error: "Invalid redirect URL generated",
         bangUsed: bangName
       };
     }
+
+    debugLog("redirect:resolved", {
+      bangUsed: bangName,
+      bangCandidate,
+      cleanQuery,
+      targetUrl: searchUrl,
+    });
     
     return { 
       success: true, 
@@ -87,7 +133,9 @@ async function getRedirect(urlParams: URLSearchParams): Promise<BangRedirectResu
       bangUsed: bangName
     };
   } catch (error) {
-    console.error("Error generating redirect:", error);
+    debugError("redirect:generate-failed", error, {
+      href: typeof window !== "undefined" ? window.location.href : null,
+    });
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Unknown error" 
@@ -105,19 +153,34 @@ export async function performRedirect(): Promise<boolean> {
 
     const redirect = await getRedirect(urlParams);
 
-    if (!redirect.success || !redirect.url) return false;
+    if (!redirect.success || !redirect.url) {
+      debugWarn("redirect:perform-failed", {
+        href: window.location.href,
+        bangUsed: redirect.bangUsed ?? null,
+        error: redirect.error ?? null,
+      });
+      return false;
+    }
 
     const url = redirect.url;
     
     // Benchmark: Calculate time from navigation start to now
     const now = performance.now();
-    console.log(`[ReBang Benchmark] Time to calculate redirect: ${now.toFixed(2)}ms`);
+    debugLog("redirect:navigate", {
+      origin: window.location.origin,
+      currentUrl: window.location.href,
+      targetUrl: url,
+      bangUsed: redirect.bangUsed ?? null,
+      elapsedMs: Number(now.toFixed(2)),
+    });
     
     window.location.replace(url);
     
     return true;
   } catch (error) {
-    console.error("Error performing redirect:", error);
+    debugError("redirect:perform-crashed", error, {
+      href: window.location.href,
+    });
     return false;
   }
 }
