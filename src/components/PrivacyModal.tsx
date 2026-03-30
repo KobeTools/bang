@@ -39,16 +39,16 @@ export function PrivacyModal({ open, onOpenChange }: PrivacyModalProps) {
           {/* Client-Side Redirects */}
           <PrivacyPoint
             icon={ArrowRight}
-            title="Client-Side Redirects"
-            description="All redirects happen entirely in your browser. Your search query goes directly from your browser to the destination site it never passes through any ReBang server."
+            title="Edge Redirects"
+            description="Known bangs are resolved at Cloudflare's edge and redirected immediately. If a query needs the full app, the fallback UI is served and the browser handles the rest."
             variant="good"
           />
 
           {/* No Server Processing */}
           <PrivacyPoint
             icon={Server}
-            title="Static Site Only"
-            description="ReBang is a static website. There's no backend server processing your requests. The site loads once, then everything runs locally in your browser."
+            title="Minimal Server Processing"
+            description="ReBang uses a Cloudflare Worker for fast redirects and a static frontend for fallback UI. There's no traditional app server or database storing your searches."
             variant="good"
           />
 

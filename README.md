@@ -1,9 +1,9 @@
 # !ReBang
 
-[![Live Site](https://img.shields.io/badge/Live_Site-rebang.online-blue?style=for-the-badge&logo=googlechrome&logoColor=white)](https://rebang.online)
+[![Live Site](https://img.shields.io/badge/Live_Site-bang.kobeerose.workers.dev-blue?style=for-the-badge&logo=googlechrome&logoColor=white)](https://bang.kobeerose.workers.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-The fastest web-based bang redirector. Set `https://rebang.online/?q=%s` as your default search engine to use [DuckDuckGo-style bangs](https://duckduckgo.com/bangs) from any browser.
+The fastest web-based bang redirector. Set `https://bang.kobeerose.workers.dev/?q=%s` as your default search engine to use [DuckDuckGo-style bangs](https://duckduckgo.com/bangs) from any browser.
 
 ![ReBang Interface](public/rebang_screenshot.png)
 
@@ -18,7 +18,7 @@ The fastest web-based bang redirector. Set `https://rebang.online/?q=%s` as your
 | **Custom bangs** | No | No | Yes |
 | **Autocomplete** | Yes | No | Yes |
 
-[unduck](https://github.com/t3dotgg/unduck) by Theo pioneered client-side bang redirects. ReBang takes it further by handling redirects at Cloudflare's edge network: the 302 redirect returns before any HTML or JavaScript loads.
+[unduck](https://github.com/t3dotgg/unduck) by Theo pioneered client-side bang redirects. ReBang takes it further by handling redirects at Cloudflare's edge network: the 302 redirect returns before any HTML or JavaScript loads. This fork serves the frontend from Cloudflare Pages and uses a separate Cloudflare Worker as the public entrypoint.
 
 ## How It's Fast
 
@@ -27,7 +27,7 @@ User: "cats !yt"  ──►  Cloudflare Edge  ──►  302 redirect to YouTube
                        (nearest PoP)         (~60ms globally)
 ```
 
-For the top 1,297 bangs, a Cloudflare Worker returns a redirect immediately. No origin server, no JS parsing. Rare bangs and custom bangs fall through to the client app.
+For the top 1,297 bangs, a Cloudflare Worker returns a redirect immediately. No frontend HTML or JavaScript needs to load first. Rare bangs and custom bangs fall through to the Pages-hosted client app.
 
 ## Bang Database
 
@@ -54,8 +54,8 @@ DDG stores each trigger as a separate entry (`!g`, `!google`, `!goog` = 3 entrie
 Add as your default search engine:
 
 **Chrome:** Settings → Search engine → Manage → Add  
-**Firefox:** Visit rebang.online, click `+` in address bar  
-**URL:** `https://rebang.online/?q=%s`
+**Firefox:** Visit `bang.kobeerose.workers.dev`, click `+` in address bar  
+**URL:** `https://bang.kobeerose.workers.dev/?q=%s`
 
 ---
 
@@ -73,10 +73,10 @@ export default {
     const query = url.searchParams.get('q');
     
     const bangMatch = query?.match(/!(\S+)/i);
-    if (!bangMatch) return passToOrigin(request);
+    if (!bangMatch) return passToOrigin(request, env);
     
     const bang = triggerMap.get(bangMatch[1].toLowerCase());
-    if (!bang) return passToOrigin(request);
+    if (!bang) return passToOrigin(request, env);
     
     const cleanQuery = query.replace(/!\S+\s*/i, '').trim();
     return Response.redirect(bang.u.replace(/%s/g, encodeURIComponent(cleanQuery)), 302);
@@ -98,21 +98,21 @@ Kagi bangs.json ─────┘           │
 ## Development
 
 ```bash
-bun install          # Install dependencies
-bun run dev          # Start dev server
-bun run update-bangs # Fetch + merge bangs from sources
-bun run build        # Production build
+pnpm install         # Install frontend dependencies
+pnpm run dev         # Start frontend dev server
+pnpm run update-bangs # Fetch + merge bangs from sources
+pnpm run build       # Production frontend build
 
 cd worker
-bun install          # Worker dependencies  
-bun run dev          # Local worker
-bun run deploy       # Deploy to Cloudflare
+npm install --no-package-lock  # Worker dependencies  
+npx wrangler dev               # Local worker
+npx wrangler deploy            # Deploy worker to Cloudflare
 ```
 
 ## Privacy
 
-- **Edge:** Query parsed at Cloudflare, redirected. No logging.
-- **Client:** Runs in browser. No tracking.
+- **Edge:** Known bangs are resolved by a Cloudflare Worker and redirected without loading the frontend first.
+- **Client:** Fallback UI and custom bang handling run in the browser via the Pages-hosted frontend.
 - **Settings:** Stored in localStorage, never transmitted.
 
 ## Credits

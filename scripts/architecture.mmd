@@ -13,8 +13,8 @@ flowchart LR
     B -->|"No bang"| F
     D -->|"✗ Rare/Custom"| F
 
-    subgraph V["🔺 Vercel Origin"]
-        F["React App"] --> G["13,296 bangs<br/>+ custom bangs<br/>+ user settings"]
+    subgraph P["📄 Cloudflare Pages Frontend"]
+        F["React App Fallback"] --> G["13,296 bangs<br/>+ custom bangs<br/>+ user settings"]
     end
 
     G --> H["Client redirect<br/>~100ms"]
