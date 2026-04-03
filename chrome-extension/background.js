@@ -51,12 +51,23 @@ function redirectIfBang(url) {
     return null;
   }
 
-  const queryValue = parsedUrl.searchParams.get("q");
-  if (!queryValue || !queryValue.trim().startsWith("!")) {
+  const queryValue =
+    parsedUrl.searchParams.get("q") ??
+    parsedUrl.searchParams.get("query") ??
+    parsedUrl.searchParams.get("search") ??
+    parsedUrl.searchParams.get("p") ??
+    parsedUrl.searchParams.get("text");
+
+  if (!queryValue) {
     return null;
   }
 
-  const parsed = parseInput(queryValue);
+  const trimmedQuery = queryValue.trim();
+  if (!trimmedQuery.startsWith("!")) {
+    return null;
+  }
+
+  const parsed = parseInput(trimmedQuery);
   if (!parsed) {
     return null;
   }
@@ -70,7 +81,7 @@ function redirectIfBang(url) {
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status !== "complete" || !tab.url) {
+  if (changeInfo.status !== "complete" || !tab.url || !tab.url.includes("!")) {
     return;
   }
 
@@ -81,6 +92,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
   chrome.tabs.update(tabId, { url: targetUrl }, () => {
     if (chrome.runtime.lastError) {
+      console.debug(`ReBang redirect failed for tab ${tabId}:`, chrome.runtime.lastError.message);
       return;
     }
   });
