@@ -42,17 +42,25 @@ async function loadApp() {
     { default: React },
     { default: ReactDOM },
     { default: App },
+    { inject },
+    { injectSpeedInsights },
     { registerSW }
   ] = await Promise.all([
     import('react'),
     import('react-dom/client'),
     import('./App'),
+    import('@vercel/analytics'),
+    import('@vercel/speed-insights'),
     import('virtual:pwa-register')
   ]);
 
   // Load CSS only when showing UI
   await import('./tailwind.css');
   debugLog('app:load-ui:assets-ready');
+
+  // Initialize analytics (only on homepage, not redirects)
+  inject();
+  injectSpeedInsights();
 
   // Register PWA
   const updateSW = registerSW({
