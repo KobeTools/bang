@@ -39,88 +39,49 @@ function buildBangUrl(bang, query) {
     : `${bang.urlTemplate}${encoded}`;
 }
 
-function dispositionToSearchDisposition(disposition) {
-  switch (disposition) {
-    case "newForegroundTab":
-      return "NEW_FOREGROUND_TAB";
-    case "newBackgroundTab":
-      return "NEW_BACKGROUND_TAB";
-    default:
-      return "CURRENT_TAB";
-  }
-}
-
-function openUrlForDisposition(url, disposition) {
-  if (disposition === "newForegroundTab") {
-    chrome.tabs.create({ url, active: true });
-    return;
+function redirectIfBang(url) {
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return null;
   }
 
-  if (disposition === "newBackgroundTab") {
-    chrome.tabs.create({ url, active: false });
-    return;
+  if (!/^https?:$/.test(parsedUrl.protocol)) {
+    return null;
   }
 
-  chrome.tabs.update({ url });
-}
-
-function runDefaultSearch(text, disposition) {
-  const query = (text || "").trim();
-  if (!query) return;
-
-  chrome.search.query({
-    text: query,
-    disposition: dispositionToSearchDisposition(disposition)
-  });
-}
-
-chrome.omnibox.onInputStarted.addListener(() => {
-  chrome.omnibox.setDefaultSuggestion({
-    description: "Type a bang and query, e.g. <match>g cats</match> or <match>!g cats</match>"
-  });
-});
-
-chrome.omnibox.onInputChanged.addListener((text, suggest) => {
-  const normalized = (text || "").trim().replace(/^!/, "");
-  const [triggerPrefix = "", ...rest] = normalized.split(/\s+/);
-  const query = rest.join(" ").trim();
-  const prefix = triggerPrefix.toLowerCase();
-
-  if (!prefix) {
-    suggest([]);
-    return;
+  const queryValue = parsedUrl.searchParams.get("q");
+  if (!queryValue || !queryValue.trim().startsWith("!")) {
+    return null;
   }
 
-  const suggestions = [];
-  for (const bang of BANGS) {
-    const trigger = bang.triggers.find((t) => t.startsWith(prefix));
-    if (!trigger) continue;
-
-    const content = `${trigger} ${query}`.trim();
-    suggestions.push({
-      content,
-      description: `<match>${trigger}</match> → ${bang.service}`
-    });
-
-    if (suggestions.length >= 6) break;
-  }
-
-  suggest(suggestions);
-});
-
-chrome.omnibox.onInputEntered.addListener((text, disposition) => {
-  const parsed = parseInput(text);
+  const parsed = parseInput(queryValue);
   if (!parsed) {
-    runDefaultSearch(text, disposition);
-    return;
+    return null;
   }
 
   const bang = BANG_MAP.get(parsed.trigger);
   if (!bang) {
-    runDefaultSearch(text, disposition);
+    return null;
+  }
+
+  return buildBangUrl(bang, parsed.query);
+}
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status !== "complete" || !tab.url) {
     return;
   }
 
-  const targetUrl = buildBangUrl(bang, parsed.query);
-  openUrlForDisposition(targetUrl, disposition);
+  const targetUrl = redirectIfBang(tab.url);
+  if (!targetUrl || targetUrl === tab.url) {
+    return;
+  }
+
+  chrome.tabs.update(tabId, { url: targetUrl }, () => {
+    if (chrome.runtime.lastError) {
+      return;
+    }
+  });
 });

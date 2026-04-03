@@ -3,13 +3,12 @@
 This extension provides client-side `!bang` redirects without replacing your default search engine.
 
 ## How it works
-1. Type `!` in the address bar, then press `Tab` to enter extension keyword mode.
-2. Type a bang and optional query:
-   - `g cats`
-   - `gh rebang`
-   - `yt lo-fi`
-3. Matching bangs redirect directly to their target websites.
-4. If no bang matches, your text is sent to your default search engine.
+1. Search as usual in the address bar.
+2. If your query starts with `!` and matches a built-in bang, the extension redirects to that target website search.
+   - `!g cats`
+   - `!gh rebang`
+   - `!yt lo-fi`
+3. If no bang matches, your normal search flow stays unchanged.
 
 ## Local install (unpacked)
 1. Open `chrome://extensions`.
