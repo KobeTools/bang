@@ -47,7 +47,7 @@ function redirectIfBang(url) {
     return null;
   }
 
-  if (!/^https?:$/.test(parsedUrl.protocol)) {
+  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
     return null;
   }
 
@@ -81,7 +81,7 @@ function redirectIfBang(url) {
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status !== "complete" || !tab.url || !tab.url.includes("!")) {
+  if (changeInfo.status !== "complete" || !tab.url) {
     return;
   }
 
