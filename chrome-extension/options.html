@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReBang Settings</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #0b1020;
+        color: #e5e7eb;
+      }
+      .container {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 24px;
+      }
+      p {
+        margin: 0 0 16px;
+        color: #9ca3af;
+      }
+      .card {
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        padding: 16px;
+        background: #111827;
+        margin-bottom: 16px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 120px 1fr 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .list-row {
+        display: grid;
+        grid-template-columns: 120px 180px 1fr auto;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #1f2937;
+      }
+      .list-row:last-child {
+        border-bottom: none;
+      }
+      input {
+        width: 100%;
+        border: 1px solid #374151;
+        border-radius: 8px;
+        padding: 10px;
+        background: #0f172a;
+        color: #e5e7eb;
+        box-sizing: border-box;
+      }
+      button {
+        border: 1px solid #374151;
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #1f2937;
+        color: #f9fafb;
+        cursor: pointer;
+      }
+      button.primary {
+        background: #2563eb;
+        border-color: #2563eb;
+      }
+      button.danger {
+        background: #7f1d1d;
+        border-color: #7f1d1d;
+      }
+      .hint {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 8px;
+      }
+      .meta {
+        font-size: 13px;
+        color: #9ca3af;
+        margin-top: 10px;
+      }
+      #status {
+        min-height: 18px;
+        font-size: 13px;
+      }
+      #status.error {
+        color: #fca5a5;
+      }
+      #status.success {
+        color: #86efac;
+      }
+      @media (max-width: 760px) {
+        .row,
+        .list-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>ReBang Settings</h1>
+      <p>Built-in bangs use the full repo list. Add your own custom bangs below (custom overrides built-in trigger matches).</p>
+
+      <div class="card">
+        <h2 style="margin-top:0;font-size:18px;">Add custom bang</h2>
+        <div class="row">
+          <input id="trigger" placeholder="trigger (e.g. ghx)" maxlength="32" />
+          <input id="name" placeholder="name (e.g. My GitHub Enterprise)" maxlength="64" />
+          <input id="urlTemplate" placeholder="https://example.com/search?q=%s" />
+          <button id="addBtn" class="primary">Add</button>
+        </div>
+        <div class="hint">URL template must include <code>%s</code> placeholder.</div>
+        <div id="status"></div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0;font-size:18px;">Custom bangs</h2>
+        <div id="customBangList"></div>
+        <div class="meta" id="meta"></div>
+      </div>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>

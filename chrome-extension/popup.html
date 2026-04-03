@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReBang Omnibox Redirect</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        width: 320px;
+        padding: 14px;
+        color: #111827;
+      }
+      h1 {
+        font-size: 15px;
+        margin: 0 0 8px;
+      }
+      p, li {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+      code {
+        background: #f3f4f6;
+        border-radius: 4px;
+        padding: 1px 4px;
+      }
+      a {
+        color: #2563eb;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ReBang Omnibox Redirect</h1>
+    <p>Type normal searches with <code>!bang</code> prefixes. ReBang intercepts early and redirects to the matched bang.</p>
+    <ul>
+      <li><code>!g cats</code> → Google</li>
+      <li><code>!gh rebang</code> → GitHub</li>
+      <li><code>!yt lo-fi</code> → YouTube</li>
+    </ul>
+    <p style="margin-top: 10px;">
+      Built-in list uses full repo bangs.
+      <a href="options.html" target="_blank" rel="noopener noreferrer">Manage custom bangs</a>.
+    </p>
+    <p style="margin-top: 10px;">
+      No typing data is collected. See
+      <a href="PRIVACY_POLICY.md" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+    </p>
+  </body>
+</html>
