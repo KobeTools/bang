@@ -15,7 +15,10 @@
     "default_title": "ReBang Omnibox Redirect",
     "default_popup": "popup.html"
   },
+  "options_page": "options.html",
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage",
+    "webNavigation"
   ]
 }

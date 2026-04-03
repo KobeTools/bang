@@ -5,9 +5,10 @@ Last updated: 2026-04-03
 ReBang Omnibox Redirect does not collect, store, transmit, or sell personal data.
 
 ## What the extension does
-- The extension checks navigated search URLs locally in your browser.
-- If the search query starts with `!` and matches a built-in hardcoded bang trigger, it redirects your tab to that website's search URL.
-- If no built-in trigger matches, it does nothing and your normal browsing/search behavior continues.
+- The extension checks navigated URLs locally in your browser to detect `!bang` search queries and redirect early.
+- Built-in bang triggers are loaded from a bundled local `bangs.json` file shipped with the extension.
+- You can optionally save custom bangs in extension local storage.
+- If no trigger matches, your normal browsing/search behavior continues.
 
 ## Data handling
 - No account system
@@ -15,10 +16,12 @@ ReBang Omnibox Redirect does not collect, store, transmit, or sell personal data
 - No tracking pixels
 - No remote code execution
 - No server-side logging by this extension
-- No use of `storage`, `cookies`, or history APIs
+- Optional custom bangs are stored only in your browser via extension local storage
 
 ## Permissions used
-- `tabs`: used to read the active tab URL update and redirect only when a matching `!bang` is detected.
+- `tabs`: used to read/update tab URL for bang redirection.
+- `webNavigation`: used to detect navigation early before full result page load completes.
+- `storage`: used only for user-created custom bangs.
 
 ## Contact
 For questions, open an issue in this repository.

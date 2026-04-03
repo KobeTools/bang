@@ -1,22 +1,8 @@
-const BANGS = [
-  { triggers: ["g", "google"], service: "Google", urlTemplate: "https://www.google.com/search?q=%s" },
-  { triggers: ["gh", "github"], service: "GitHub", urlTemplate: "https://github.com/search?q=%s" },
-  { triggers: ["yt", "youtube"], service: "YouTube", urlTemplate: "https://www.youtube.com/results?search_query=%s" },
-  { triggers: ["w", "wiki", "wikipedia"], service: "Wikipedia", urlTemplate: "https://en.wikipedia.org/wiki/Special:Search?search=%s" },
-  { triggers: ["r", "reddit"], service: "Reddit", urlTemplate: "https://www.reddit.com/search/?q=%s" },
-  { triggers: ["so", "stackoverflow"], service: "Stack Overflow", urlTemplate: "https://stackoverflow.com/search?q=%s" },
-  { triggers: ["mdn"], service: "MDN", urlTemplate: "https://developer.mozilla.org/en-US/search?q=%s" },
-  { triggers: ["npm"], service: "npm", urlTemplate: "https://www.npmjs.com/search?q=%s" },
-  { triggers: ["amz", "amazon"], service: "Amazon", urlTemplate: "https://www.amazon.com/s?k=%s" },
-  { triggers: ["x", "twitter"], service: "X", urlTemplate: "https://x.com/search?q=%s" }
-];
+const SEARCH_QUERY_KEYS = ["q", "query", "search", "p", "text", "wd", "keyword", "k", "s"];
 
-const BANG_MAP = new Map();
-for (const bang of BANGS) {
-  for (const trigger of bang.triggers) {
-    BANG_MAP.set(trigger.toLowerCase(), bang);
-  }
-}
+let builtInBangMapPromise = null;
+let combinedBangMapPromise = null;
+const redirectingTabs = new Set();
 
 function parseInput(rawText) {
   const trimmed = (rawText || "").trim();
@@ -39,7 +25,92 @@ function buildBangUrl(bang, query) {
     : `${bang.urlTemplate}${encoded}`;
 }
 
-function redirectIfBang(url) {
+function extractBangQuery(parsedUrl) {
+  for (const key of SEARCH_QUERY_KEYS) {
+    const value = parsedUrl.searchParams.get(key);
+    if (value && value.trim().startsWith("!")) {
+      return value.trim();
+    }
+  }
+
+  for (const value of parsedUrl.searchParams.values()) {
+    if (value && value.trim().startsWith("!")) {
+      return value.trim();
+    }
+  }
+
+  return null;
+}
+
+async function loadBuiltInBangMap() {
+  if (builtInBangMapPromise) {
+    return builtInBangMapPromise;
+  }
+
+  builtInBangMapPromise = (async () => {
+    const response = await fetch(chrome.runtime.getURL("bangs.json"));
+    if (!response.ok) {
+      throw new Error(`Failed to load bundled bangs.json (${response.status})`);
+    }
+
+    const data = await response.json();
+    const map = new Map();
+
+    if (!data || !Array.isArray(data.b)) {
+      return map;
+    }
+
+    for (const item of data.b) {
+      if (!Array.isArray(item) || item.length < 5) continue;
+
+      const [triggersRaw, service, , , urlTemplate] = item;
+      if (typeof urlTemplate !== "string") continue;
+
+      const triggers = Array.isArray(triggersRaw) ? triggersRaw : [triggersRaw];
+      for (const trigger of triggers) {
+        if (typeof trigger !== "string") continue;
+        const normalized = trigger.trim().toLowerCase();
+        if (!normalized) continue;
+        map.set(normalized, { service, urlTemplate });
+      }
+    }
+
+    return map;
+  })();
+
+  return builtInBangMapPromise;
+}
+
+async function loadCombinedBangMap() {
+  if (combinedBangMapPromise) {
+    return combinedBangMapPromise;
+  }
+
+  combinedBangMapPromise = (async () => {
+    const builtIn = await loadBuiltInBangMap();
+    const combined = new Map(builtIn);
+
+    const { customBangs = [] } = await chrome.storage.local.get({ customBangs: [] });
+    if (Array.isArray(customBangs)) {
+      for (const customBang of customBangs) {
+        if (!customBang || typeof customBang !== "object") continue;
+
+        const trigger = String(customBang.trigger || "").trim().toLowerCase();
+        const urlTemplate = String(customBang.urlTemplate || "").trim();
+        const service = String(customBang.name || "Custom").trim() || "Custom";
+
+        if (!trigger || !urlTemplate) continue;
+        combined.set(trigger, { service, urlTemplate });
+      }
+    }
+
+    return combined;
+  })();
+
+  return combinedBangMapPromise;
+}
+
+async function resolveBangRedirectUrl(url) {
   let parsedUrl;
   try {
     parsedUrl = new URL(url);
@@ -51,28 +122,18 @@ function redirectIfBang(url) {
     return null;
   }
 
-  const queryValue =
-    parsedUrl.searchParams.get("q") ??
-    parsedUrl.searchParams.get("query") ??
-    parsedUrl.searchParams.get("search") ??
-    parsedUrl.searchParams.get("p") ??
-    parsedUrl.searchParams.get("text");
-
-  if (!queryValue) {
+  const bangQuery = extractBangQuery(parsedUrl);
+  if (!bangQuery) {
     return null;
   }
 
-  const trimmedQuery = queryValue.trim();
-  if (!trimmedQuery.startsWith("!")) {
-    return null;
-  }
-
-  const parsed = parseInput(trimmedQuery);
+  const parsed = parseInput(bangQuery);
   if (!parsed) {
     return null;
   }
 
-  const bang = BANG_MAP.get(parsed.trigger);
+  const bangMap = await loadCombinedBangMap();
+  const bang = bangMap.get(parsed.trigger);
   if (!bang) {
     return null;
   }
@@ -80,20 +141,61 @@ function redirectIfBang(url) {
   return buildBangUrl(bang, parsed.query);
 }
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status !== "complete" || !tab.url) {
+async function redirectTabIfNeeded(tabId, url) {
+  if (redirectingTabs.has(tabId)) {
     return;
   }
 
-  const targetUrl = redirectIfBang(tab.url);
-  if (!targetUrl || targetUrl === tab.url) {
+  const targetUrl = await resolveBangRedirectUrl(url);
+  if (!targetUrl || targetUrl === url) {
     return;
   }
 
+  redirectingTabs.add(tabId);
   chrome.tabs.update(tabId, { url: targetUrl }, () => {
     if (chrome.runtime.lastError) {
       console.debug(`ReBang redirect failed for tab ${tabId}:`, chrome.runtime.lastError.message);
-      return;
     }
+    setTimeout(() => redirectingTabs.delete(tabId), 250);
   });
+}
+
+chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+  if (details.frameId !== 0 || !details.url) {
+    return;
+  }
+
+  redirectTabIfNeeded(details.tabId, details.url);
 });
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (!tab.url || (changeInfo.status !== "loading" && changeInfo.status !== "complete")) {
+    return;
+  }
+
+  redirectTabIfNeeded(tabId, tab.url);
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "local" && changes.customBangs) {
+    combinedBangMapPromise = null;
+  }
+});
+
+async function warmBangCache() {
+  try {
+    await loadCombinedBangMap();
+  } catch (error) {
+    console.debug("ReBang cache warm-up failed:", error);
+  }
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  warmBangCache();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  warmBangCache();
+});
+
+warmBangCache();
