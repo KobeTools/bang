@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ReBang Omnibox Redirect",
+  "name": "Bang",
   "version": "1.0.0",
   "description": "Redirect !bang searches after Enter while keeping your default search engine autocomplete.",
   "icons": {
@@ -12,7 +12,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "ReBang Omnibox Redirect",
+    "default_title": "Bang",
     "default_popup": "popup.html"
   },
   "options_page": "options.html",
